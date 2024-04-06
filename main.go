@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"cwrenhold/lsp-from-scratch/analysis"
 	"cwrenhold/lsp-from-scratch/lsp"
 	"cwrenhold/lsp-from-scratch/rpc"
 	"encoding/json"
@@ -16,6 +17,8 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.Split)
 
+	state := analysis.NewState()
+
 	for scanner.Scan() {
 		msg := scanner.Bytes()
 		method, contents, err := rpc.DecodeMessage(msg)
@@ -25,11 +28,11 @@ func main() {
 			continue
 		}
 
-		handleMessage(logger, method, contents)
+		handleMessage(logger, state, method, contents)
 	}
 }
 
-func handleMessage(logger *log.Logger, method string, contents []byte) {
+func handleMessage(logger *log.Logger, state analysis.State, method string, contents []byte) {
 	logger.Printf("Received message with method: %s", method)
 
 	switch method {
@@ -51,6 +54,24 @@ func handleMessage(logger *log.Logger, method string, contents []byte) {
 		writer.Write([]byte(reply))
 
 		logger.Print("Sent initialize response")
+	case "textDocument/didOpen":
+		var notification lsp.DidOpenTextDocumentNotification
+		if err := json.Unmarshal(contents, &notification); err != nil {
+			logger.Printf("Error unmarshalling textdocument/didOpen request: %s", err)
+		}
+
+		logger.Printf("Opened document %s", notification.Params.TextDocument.URI)
+		state.OpenDocument(notification.Params.TextDocument.URI, notification.Params.TextDocument.Text)
+	case "textDocument/didChange":
+		var notification lsp.TextDocumentDidChangeNotification
+		if err := json.Unmarshal(contents, &notification); err != nil {
+			logger.Printf("Error unmarshalling textdocument/didChange request: %s", err)
+		}
+
+		logger.Printf("Changed: %s", notification.Params.TextDocument.URI)
+		for _, change := range notification.Params.ContentChanges {
+			state.UpdateDocument(notification.Params.TextDocument.URI, change.Text)
+		}
 	}
 }
 
