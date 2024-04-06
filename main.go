@@ -82,6 +82,17 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 		response := state.Hover(request.ID, request.Params.TextDocument.URI, request.Params.Position)
 
 		writeResponse(writer, response)
+	// Triggered by :lua vim.lsp.buf.definition(), this is because some plugins seem to prevent this working out of the box?
+	case "textDocument/definition":
+		var request lsp.DefinitionRequest
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("Error unmarshalling definition request: %s", err)
+		}
+
+		// Create response
+		response := state.Definition(request.ID, request.Params.TextDocument.URI, request.Params.Position)
+
+		writeResponse(writer, response)
 	}
 }
 
