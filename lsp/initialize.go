@@ -28,8 +28,8 @@ type InitializeResult struct {
 }
 
 type ServerCapabilities struct {
-	// We'll ignore this for now
-	TextDocumentSync int `json:"textDocumentSync"`
+	TextDocumentSync int  `json:"textDocumentSync"`
+	HoverProvider    bool `json:"hoverProvider"`
 }
 
 type ServerInfo struct {
@@ -46,6 +46,7 @@ func NewInitializeResponse(id int) InitializeResponse {
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
 				TextDocumentSync: 1, // Full sync
+				HoverProvider:    true,
 			},
 			ServerInfo: ServerInfo{
 				Name:    "educationallsp",
