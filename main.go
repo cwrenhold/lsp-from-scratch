@@ -93,6 +93,16 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 		response := state.Definition(request.ID, request.Params.TextDocument.URI, request.Params.Position)
 
 		writeResponse(writer, response)
+	// Triggered by :lua vim.lsp.buf.code_action()
+	case "textDocument/codeAction":
+		var request lsp.CodeActionRequest
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("Error unmarshalling code action request: %s", err)
+		}
+
+		response := state.TextDocumentCodeAction(request.ID, request.Params.TextDocument.URI)
+
+		writeResponse(writer, response)
 	}
 }
 
