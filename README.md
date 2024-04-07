@@ -12,3 +12,7 @@ To use this repo, I've included a devcontainer configuration, but you'll also ne
 - Launch neovim, and load up a Markdown file, this will trigger the LSP
 - In the lsp repository, a log file called "lsp.txt" should be created
 
+# Notes
+
+- This is only configured to work with neovim for now, but could be extended to support VS Code or other consumers of LSPs later
+
